@@ -10,7 +10,7 @@ function nxt(){
         day = day +1;
         document.getElementById('daynum').innerHTML =  " روز " + day + " واجور ";
         tem = reset_();
-        // jdd
+        
 };
 function disablebut(){
         document.getElementById('nxt').disabled='true';
