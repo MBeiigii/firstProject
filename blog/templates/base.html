@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="fa">
+
+<head>
+<meta charset="UTF-8">
+<title>Title</title>
+<link rel="stylesheet" href="vaj.css"> 
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+<style>
+    *{
+    direction: rtl;
+    }
+    .container{
+        direction: rtl;
+        background-color: black;
+        
+    }
+    form{
+        font-size: 22px;
+        border-radius: 12px;
+        font-family: 'b titr' ; 
+        text-align: center;
+        color: aliceblue;
+        background-color: black;
+    }
+    a{
+        font-family: 'b titr' ; 
+        text-align: center;
+    }
+    h3,h2,h4 ,p{
+        font-family: 'b titr' ; 
+        text-align: center;
+        color: aliceblue;
+        background-color: black;
+    }
+    .jumbotron{
+        background-color: black;
+        border-radius: 15px;
+    }
+</style>
+</head>
+<body>
+    
+    {% include 'inc/navbar.html' %}
+    <div style="background-color: black; height:8in; padding-top: .5in;">
+    {% include 'inc/messages.html' %}
+    {% block content %} {% endblock %}
+</div>
+</body>
+</html>

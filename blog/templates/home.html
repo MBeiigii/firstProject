@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<div class="jumbotron">
+    
+    <h4 style="align-content:  center;"> سلام  {{ current_user.username }}  <br/> <p style="padding-bottom: .5in ; padding-left: .05in; ">به وبلاگ ما خوش آمدید</p> </h4>
+
+    <div class="card">
+        {% for post in posts %}
+            <h3 class="card-body" style="font-size: 30px;color: aliceblue;background-color: black;">{{ post.author.username }}<br/><a href="{{ url_for('detail', post_id=post.id) }}", style="font-size: small; padding: .11in; " >"{{ post.title}}" <br> <small>     در تاریخ</small>{{ post.date.strftime('%d-%m-%Y') }}</a></h3>
+        {% endfor %}
+    </div>
+</div>
+    </div>
+{% endblock %}

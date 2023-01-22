@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<div class="jumbotron">
+    
+    
+    <h3>{{ current_user.username }}</h3>
+    <p>{{ current_user.email }}</p><hr/>
+
+    {% include 'inc/form_errors.html' %}
+    <form action="" method="post" style="text-align:right">
+        {{ form.csrf_token }}
+        {{ form.username.label }} {{ form.username }}<br>
+        {{ form.email.label }} {{ form.email }}<br>
+        <input type="submit" value="بروزرسانی" class="btn btn-info"><br>
+        <a href="{{ url_for('new_post') }}" class="btn btn-info" style="text-align: center;margin-top: 0.6in;height: 45px; width: 20%;">ارسال مطلب جدید</a>
+    </form>
+</div>
+</div>
+{% endblock %}

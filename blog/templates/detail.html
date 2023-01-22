@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<div class="jumbotron">
+    
+    {% if (post.author == current_user) or (current_user.email == "Admin@gmail.com" ) %}
+    <a href="{{ url_for('delete', post_id=post.id) }}" class="btn btn-danger">Delete</a>
+    <a href="{{ url_for('update', post_id=post.id) }}" class="btn btn-secondary">Update</a>
+    {% endif %}
+    <h3>{{ post.title }}</h3>
+    <p>{{ post.author.username }}<br><small style="font-size: 15px;">{{ post.date.strftime('%Y-%m-%d') }}</small> <br><small style="font: size 10px;">{{ post.date.strftime('(%H-%M-%S)') }}</small></p><hr/>
+    
+    <p>{{ post.content }}</p>
+</div>
+</div>
+{% endblock %}

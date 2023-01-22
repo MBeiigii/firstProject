@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+<div class="jumbotron">
+    <form action="" method="post">
+        {{ form.csrf_token }}
+        {{ form.title.label(class='form-control-label') }} {{ form.title(class='form-control') }}
+        {{ form.content.label(class='form-control-label') }} {{ form.content(class='form-control') }}
+        <input type="submit" value="ثبت" class="btn btn-secondary" style="margin-top: 10px; width: 210px; font-family: 'b titr'; font-size: 25PX;">
+    </form>
+
+</div>
+</div>
+{% endblock %}
