@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> انتخاب مبداء و مقصد برای درخواست پیک </title>
+    <!-- اضافه کردن فایل‌های css و js مربوط به Leaflet -->
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="{% static 'general_default.css' %}">
+    <style>
+        /* #map {
+            position: relative;
+            width: 400%;
+            height: 600px; 
+            margin-bottom: 20px; 
+        } */
+        .marker {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        #markerOrigin, #markerDestination {
+            margin-top: -10px; /* تنظیم موقعیت عمودی نشانگرها */
+            margin-left: -10px; /* تنظیم موقعیت افقی نشانگرها */
+        }
+        #confirmButton {
+            position: relative;
+            top: 420px; /* فاصله بین دکمه تایید و نقشه */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        button a {
+            text-decoration: none;
+            color: black;
+        }
+        .coordinates-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .remove-button {
+            position: absolute;
+            top: 80px;
+            left: 10px;
+            cursor: pointer;
+            size: 110px;
+        }
+        .conferm-button {
+            position: absolute;
+            top: 80px;
+            left: 60px;
+            cursor: pointer;
+            size: 110px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ایجاد یک نقشه با شناسه map -->  
+    <div id="map"></div>
+    <button id="confirmButton" style="display: none;">تایید</button>
+    <div id="coordinatesBox" class="coordinates-box" style="display: none;"></div>
+    <div id="markerOrigin" class="marker" style="display: none;">مبداء</div>
+    <button id="removeButton" class="remove-button" style="display: none;">حذف</button>
+    <div id="markerDestination" class="marker" style="display: none;">مقصد</div>
+    <button id="confermButton" class="conferm-button" style="display: none;">تایید</button>
+{{ form.origin_location_lat }}
+{{ form.origin_location_lon }}
+{{ form.destination_location_lat }}
+{{ form.destination_location_lon }}
+    <button style="position: fixed; top: 2px; right: 10px; "><a href="{% url 'account:logout' %}" style="text-decoration: none;">خروج</a></button>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoibWJlaWdpIiwiYSI6ImNsajFnN3Z3OTAxY3EzY28wYXloM2Fsd3MifQ.QVjbRTixAaL3PQwdMN56Ew';
+        const map = new mapboxgl.Map({
+          container: 'map',
+          style: 'mapbox://styles/mapbox/satellite-streets-v12',
+          center: [51.430081, 35.734749],
+          zoom: 17
+        });
+
+        let originCoordinates = null;
+        let destinationCoordinates = null;
+        let originMarker = null;
+        let destinationMarker = null;
+
+        map.on('click', function(e) {
+            if (!originCoordinates) {
+                originCoordinates = e.lngLat;
+                console.log('مکان مبداء:', originCoordinates);
+                originMarker = new mapboxgl.Marker({ color: 'red' })
+                    .setLngLat(e.lngLat)
+                    .addTo(map);
+                document.getElementById('coordinatesBox').style.display = 'block';
+                document.getElementById('coordinatesBox').innerText = `مختصات مبداء: ${e.lngLat.lng.toFixed(4)}, ${e.lngLat.lat.toFixed(4)}`;
+                document.getElementById('removeButton').style.display = 'block';
+            } else if (!destinationCoordinates) {
+                destinationCoordinates = e.lngLat;
+                console.log('مکان مقصد:', destinationCoordinates);
+                destinationMarker = new mapboxgl.Marker({ color: 'blue' })
+                    .setLngLat(e.lngLat)
+                    .addTo(map);
+                document.getElementById('coordinatesBox').innerText += `\nمختصات مقصد: ${e.lngLat.lng.toFixed(4)}, ${e.lngLat.lat.toFixed(4)}`;
+                document.getElementById('confermButton').style.display = 'block';
+            }
+        });
+
+        document.getElementById('removeButton').addEventListener('click', function() {
+            if (originCoordinates && !destinationCoordinates) {
+                originCoordinates = null;
+                originMarker.remove();
+                document.getElementById('markerOrigin').style.display = 'none';
+                document.getElementById('coordinatesBox').style.display = 'none';
+                document.getElementById('removeButton').style.display = 'none';
+                document.getElementById('confermButton').style.display = 'none';
+            } else if (destinationCoordinates) {
+                destinationCoordinates = null;
+                destinationMarker.remove();
+                document.getElementById('markerDestination').style.display = 'none';
+                document.getElementById('coordinatesBox').innerText = `مختصات مبداء: ${originCoordinates.lng.toFixed(4)}, ${originCoordinates.lat.toFixed(4)}`;
+            }
+        });
+
+        
+        document.getElementById('confermButton').addEventListener('click', function() {
+            // Set zoom to 11 after confirmation
+            
+            document.getElementById('origin_location_lat').value = originCoordinates.lat;
+            document.getElementById('origin_location_lon').value = originCoordinates.lng;
+            document.getElementById('destination_location_lat').value = destinationCoordinates.lat;
+            document.getElementById('destination_location_lon').value = destinationCoordinates.lng;
+            map.setZoom(10);
+        });
+    </script>
+</body>
+</html>

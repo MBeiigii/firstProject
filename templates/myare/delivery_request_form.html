@@ -1,0 +1,258 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> انتخاب مبداء و مقصد برای درخواست پیک </title>
+    <!-- اضافه کردن فایل‌های css و js مربوط به Leaflet -->
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="{% static 'general_default.css' %}">
+    <style>
+        
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+.tooltip {
+  background-color: rgba(62, 60, 60, 0.726);
+  color: aliceblue;
+  padding: 2px ;
+  font-size: .7rem;
+  font-family: b titr, sans-serif;
+  text-align: center;
+  position: absolute;
+  pointer-events: none; /* این خط مهم است */
+  display: none; /* این خط نیز مهم است */
+}
+.filter1{
+  width: 3.2rem;
+  font-size: .7rem;
+  font-family: b titr, sans-serif;
+  opacity: .7;
+}
+.filter{
+  font-family: b titr, sans-serif;
+  font-size: .7rem;
+  color: aliceblue;
+  opacity: .7;
+}
+.filter-dropdown{
+  font-size: .7rem;
+  opacity: .7;
+}
+#dateForm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  text-align: center;
+  width: 79px;
+  white-space: nowrap;
+  opacity: .7;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #f0f0f0;
+  margin: 0; 
+  padding: 0;
+}
+
+.loading-container {
+  display: none;
+  align-items: center;
+  color: wheat;
+}
+
+.loading-spinner {
+  border: 9px solid rgba(0, 0, 0, 0.1);
+  border-top: 9px solid #000;
+  border-radius: 50%;
+  width: 90px;
+  height: 90px;
+  animation: spin .5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+        /* #map {
+            position: relative;
+            width: 400%;
+            height: 600px; 
+            margin-bottom: 20px; 
+        } */
+        .marker {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+        #markerOrigin, #markerDestination {
+            margin-top: -10px; /* تنظیم موقعیت عمودی نشانگرها */
+            margin-left: -10px; /* تنظیم موقعیت افقی نشانگرها */
+        }
+        #confirmButton {
+            position: relative;
+            top: 420px; /* فاصله بین دکمه تایید و نقشه */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        button a {
+            text-decoration: none;
+            color: black;
+        }
+        .coordinates-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .remove-button {
+            position: absolute;
+            top: 110px;
+            left: 10px;
+            cursor: pointer;
+            size: 110px;
+        }
+        .conferm-button {
+            position: absolute;
+            top: 110px;
+            left: 60px;
+            cursor: pointer;
+            size: 110px;
+        }
+    </style>
+</head>
+<body>
+   
+    <!-- ایجاد یک نقشه با شناسه map -->  
+    <div id="map"></div>
+    <button id="confirmButton" style="display: none;">تایید</button>
+    <div id="coordinatesBox" class="coordinates-box" style="display: none;"></div>
+    <div id="markerOrigin" class="marker" style="display: none;">مبداء</div>
+    <button id="removeButton" class="remove-button" style="display: none;">حذف</button>
+    <div id="markerDestination" class="marker" style="display: none;">مقصد</div>
+    <div id="priceInputContainer" style="display: none;width:200px ; position: absolute; top: 67px; left: 10px; background-color: white; border: 1px solid #ccc; padding: 10px;">
+        <label for="priceInput">کرایه: <input type="number" id="priceInput" style="width: 110px"  name="price" placeholder="مبلغ به تومان"> <button id="submitPrice" style="float: inline-end;">ثبت</button></label>
+       
+       
+    </div>
+    
+    <button id="confermButton" class="conferm-button" style="display: none;">تایید</button>
+
+
+
+
+    <button style="position: fixed; top: 2px; right: 10px; "><a href="{% url 'account:logout' %}" style="text-decoration: none;">خروج</a></button>
+
+
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoibWJlaWdpIiwiYSI6ImNsajFnN3Z3OTAxY3EzY28wYXloM2Fsd3MifQ.QVjbRTixAaL3PQwdMN56Ew';
+        const map = new mapboxgl.Map({
+          container: 'map',
+          style: 'mapbox://styles/mapbox/satellite-streets-v12',
+          center: [51.430081, 35.734749],
+          zoom: 17
+        });
+
+        let originCoordinates = null;
+        let destinationCoordinates = null;
+        let originMarker = null;
+        let destinationMarker = null;
+        map.on('click', function(e) {
+            if (!originCoordinates) {
+                // کد مربوط به انتخاب مبداء
+            } else if (!destinationCoordinates) {
+                destinationCoordinates = e.lngLat;
+                console.log('مکان مقصد:', destinationCoordinates);
+                destinationMarker = new mapboxgl.Marker({ color: 'blue' })
+                    .setLngLat(e.lngLat)
+                    .addTo(map);
+                document.getElementById('coordinatesBox').innerText += `\nمختصات مقصد: ${e.lngLat.lng.toFixed(4)}, ${e.lngLat.lat.toFixed(4)}`;
+                document.getElementById('priceInputContainer').style.display = 'block'; // نمایش فرم مبلغ
+                document.getElementById('confermButton').style.display = 'none'; // مخفی کردن دکمه تایید
+            }
+        });
+
+        map.on('click', function(e) {
+            if (!originCoordinates) {
+                originCoordinates = e.lngLat;
+                console.log('مکان مبداء:', originCoordinates);
+                originMarker = new mapboxgl.Marker({ color: 'red' })
+                    .setLngLat(e.lngLat)
+                    .addTo(map);
+                document.getElementById('coordinatesBox').style.display = 'block';
+                document.getElementById('coordinatesBox').innerText = `مختصات مبداء: ${e.lngLat.lng.toFixed(4)}, ${e.lngLat.lat.toFixed(4)}`;
+                document.getElementById('removeButton').style.display = 'block';
+            } else if (!destinationCoordinates) {
+                destinationCoordinates = e.lngLat;
+                console.log('مکان مقصد:', destinationCoordinates);
+                destinationMarker = new mapboxgl.Marker({ color: 'blue' })
+                    .setLngLat(e.lngLat)
+                    .addTo(map);
+                document.getElementById('coordinatesBox').innerText += `\nمختصات مقصد: ${e.lngLat.lng.toFixed(4)}, ${e.lngLat.lat.toFixed(4)}`;
+                document.getElementById('confermButton').style.display = 'block';
+            }
+        });
+        document.getElementById('submitPrice').addEventListener('click', function() {
+        const price = document.getElementById('priceInput').value;
+            if (!price) {
+                alert('لطفا مبلغ را وارد کنید');
+            } else {
+                console.log('مبلغ ثبت شده: ', price);
+                // document.getElementById('priceInputContainer').style.display = 'none';
+                document.getElementById('confermButton').style.display = 'block'; // نمایش دکمه تایید
+            }
+        });
+
+        document.getElementById('removeButton').addEventListener('click', function() {
+            if (originCoordinates && !destinationCoordinates) {
+                originCoordinates = null;
+                originMarker.remove();
+                document.getElementById('markerOrigin').style.display = 'none';
+                document.getElementById('coordinatesBox').style.display = 'none';
+                document.getElementById('removeButton').style.display = 'none';
+                document.getElementById('confermButton').style.display = 'none';
+            } else if (destinationCoordinates) {
+                destinationCoordinates = null;
+                destinationMarker.remove();
+                document.getElementById('markerDestination').style.display = 'none';
+                document.getElementById('coordinatesBox').innerText = `مختصات مبداء: ${originCoordinates.lng.toFixed(4)}, ${originCoordinates.lat.toFixed(4)}`;
+            }
+        });
+        $('#confermButton').click(function(event) {
+            event.preventDefault(); // مانع از رفتن به صفحه دیگر می‌شود
+            o_lat =  originCoordinates.lat
+            o_lng = originCoordinates.lng
+            d_lat = destinationCoordinates.lat
+            d_lng = destinationCoordinates.lng
+            price = document.getElementById('priceInput').value
+            
+            var url = 'crt/send_req/' + o_lat +'/'+ o_lng+'/'+ d_lat+'/'+ d_lng+'/'+ price;
+
+            // انجام درخواست AJAX
+            // window.location.href = url;
+           const windowFeatures = "width=100,height=80,left=300,top=300";
+
+// باز کردن URL در یک پنجره جدید با ابعاد و موقعیت مشخص
+            window.open(url, '_blank', windowFeatures);
+            map.setZoom(11);
+        });
+    </script>
+</body>
+</html>

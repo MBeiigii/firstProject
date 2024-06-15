@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    
+    #nav {
+      background-color: #ffffff;
+      color: #333333;
+      display: flex;
+      border: 0 0 .5px 0 rgba(255, 0, 0, 0.651) solid;
+      box-shadow: 0 0 8px 0  rgba(255, 0, 0, 0.651); ;
+      justify-content: space-between;
+      padding: 7px;
+      position: fixed;
+      top: 0px;
+      width: 100%;
+      z-index: 1000; /* Make sure it's above other elements */
+    }
+    
+    .nav-but {
+      margin: 0;
+    }
+    
+    .nav-but a {
+      text-decoration: none;
+      color: #333333;
+      margin: 0 10px;
+      
+    }
+    
+    .nav-but a:hover {
+      color: #ffc400;
+    }
+
+    .link {
+      transition: color 0.3s;
+      font-family: b titr;
+      font-size: 1.2rem;
+    }
+    
+  </style>
+</head>
+<body>
+  <div id="nav">
+    <div class="nav-but" style="display: flexbox; justify-items: flex-end ;">
+      
+      {% if request.user.is_authenticated %}
+      <a class="link" href="{% url 'account:logout' %}"  >خروج</a>
+      <a class="link" href="{% url 'account:changepassword' %} "  >تغییر رمز</a>
+      {% else %}
+      <a class="link" href="{% url 'account:login' %}">ورود</a>
+      {% endif %}
+    </div>
+  </div>
+  <!-- Add your content below the navigation bar -->
+</body>
+</html>

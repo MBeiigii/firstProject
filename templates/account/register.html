@@ -1,0 +1,54 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+/* در قسمت <head> HTML خود این کدها را قرار دهید یا یک فایل CSS جداگانه ایجاد کنید و آن را وصل کنید */
+
+/* استایل برای فرم */
+form {
+    width: 570px;
+    font-size: small;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    text-align: right;
+}
+
+/* استایل برای ورودی‌ها (فیلدهای ورودی) */
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* استایل برای دکمه ثبت نام */
+input[type="submit"] {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+/* تغییر رنگ دکمه هنگام هاور */
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+</style>
+<form action="" method="post" >
+    <div class="con_" style="margin: 40px; padding: 34px; width: fit-content;margin-left: auto;margin-right: auto;">
+        {% csrf_token %}
+        {{ form.as_p }}
+    <input class="btn btn-info" type="submit" value = 'ورود' style="width: 110px;"> 
+</div>
+</form>
+
+
+{% endblock %}

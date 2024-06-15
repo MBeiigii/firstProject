@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if message %}
+  <p>{{ message }}</p>
+{% endif %}
+
+<p>Do you want to logout?</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit">Logout</button>
+</form>
+
+{% endblock %}

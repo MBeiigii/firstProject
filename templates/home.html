@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block content_t %}
+<title>سفارش محصول</title>
+{% endblock %}
+{% block content %}
+<style>
+.big {
+        font-size: 3vw  5vw; 
+    }
+    .con_ {
+        margin: 3vw 5vw;
+        padding: 3vw;
+    }
+
+    .console-container {
+        font-size: .5vw 1.5vw;
+    }
+</style>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+        .box {
+      width: 100%;
+      max-width: 300px;
+      padding: 20px;
+      background-color: #f0f0f0;
+      margin: 10px auto;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* استایل متن داخل باکس‌ها */
+    .box p {
+      margin: 0;
+    }
+
+    /* استایل ریسپانسیو برای باکس‌ها */
+    @media only screen and (min-width: 768px) {
+      .box {
+        width: 45%;
+        margin: 10px;
+      }
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .col-sm-4 {
+      flex-basis: calc(20% - 20px); /* تنظیم عرض ستون‌ها به 20% با فاصله بین آن‌ها */
+      margin-bottom: 20px; /* فاصله بین سطرها */
+    }
+
+    .card {
+      width: 100%; /* عرض کارت‌ها را به 100% تنظیم کنید تا در هر ستون یک کارت قرار بگیرد */
+    }
+
+    ul.list-unstyled {
+      padding: 0; /* حذف padding از لیست بدون نقطه */
+      margin: 0; /* حذف margin از لیست بدون نقطه */
+    }
+
+    ul.list-unstyled li {
+      list-style: none; /* حذف نقطه از مواد لیست */
+    }
+  </style>
+</head>
+<body>
+  {% if request.user.is_authenticated %}
+  {% if "forms" in request.user.username %}
+  <div class="box">
+    <a class="link" href="{% url 'forms:flowform' %}"  >کنترل فرآیند تولید</a>
+  </div>
+
+  <div class="box">
+    <a class="link" href="{% url 'forms:ProductQulity' %}"  >کیفیت محصول</a>
+  </div>
+
+  <div class="box">
+    <a class="link" href="{% url 'forms:Inconsistentproduct' %}"  >محصول نامنطبق</a>
+  </div>
+
+  <div class="box">
+    <a class="link" href="{% url 'forms:Qualitycontrolrawmaterials' %}"  >کنترل مواد اولیه</a>
+  </div>
+  {% else %}
+    <h5 >ثبت درخواست جدید </h5>
+  {% endif %}
+<div class="container">
+
+    <br>
+  {% for cat in category %}
+
+  <div class="col-sm-4">
+    <!-- <div class="card">
+      <img class="card-img-top p-1" src="{{ cat.image.url }}" style="height: 15rem;z-index: 0">
+    </div> -->
+    <ul class="list-unstyled">
+      <h3 class="card-title" style="font-size: 1rem;">{{ cat.c_name }}</h3>
+      {% for scat in cat.scategory.all %}
+      <li class="p-1-2 d-flex justify-content-center bg-light m-1 rounded-pill" style="font-size: .8rem;"><a href="{% url 'home:crt_req' scat.slug %}">{{ scat.c_name }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+
+</body>
+</html>
+<h3 style="padding-top: 70px;margin-bottom: 0;">دستورالعمل کلی سامانه</h3>
+        <div class='con_' style="margin: 20px 0; padding: 30px;width: 80%;">
+        <div class='console-container'><span id='text'></span>
+            <div class='console-underscore' id='console'>
+
+            </div>
+        </div>
+        </div>
+
+        </ul>
+
+        
+
+                    
+<script>
+    history.pushState(null, null, document.URL);
+    window.addEventListener('popstate', function () {
+        history.pushState(null, null, document.URL);
+    });
+consoleText([' 1- ابتدا، حتما اقدام به تغییر رمز خود نموده و در نگهداری از آن دقت فرمایید.<hr>2-هر شعبه یک حساب کاربری خواهد داشت که در اختیار مدیر قرار می گیرد و مسئولیت هرگونه ثبت اطلاعات با وی می باشد.<br> برای اطلاعات بیشتر با داخلی 1107 تماس حاصل فرمایید.'], 'text',['black']);
+
+function consoleText(words, id, colors) {
+  if (colors === undefined) colors = ['#fff'];
+  var visible = true;
+  var con = document.getElementById('console');
+  var letterCount = 1;
+  var x = 1;
+  var waiting = false;
+  var target = document.getElementById(id)
+  target.setAttribute('style', 'color:' + colors[0])
+  window.setInterval(function() {
+
+    if (letterCount === 0 && waiting === false) {
+      waiting = true;
+      target.innerHTML = words[0].substring(0, letterCount)
+      window.setTimeout(function() {
+        var usedColor = colors.shift();
+        colors.push(usedColor);
+        var usedWord = words.shift();
+        words.push(usedWord);
+        x = 1;
+        target.setAttribute('style', 'color:' + colors[0])
+        letterCount += x;
+        waiting = false;
+      }, 300)
+    } else if (waiting === false) {
+      target.innerHTML = words[0].substring(0, letterCount)
+      letterCount += x;
+    }
+  }, 30)
+}
+
+</script>
+{% endblock %}

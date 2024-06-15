@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>انتخاب مبداء و مقصد برای درخواست پیک</title>
+    <!-- اضافه کردن فایل‌های css و js مربوط به Leaflet -->
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <style>
+        
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+.tooltip {
+  background-color: rgba(62, 60, 60, 0.726);
+  color: aliceblue;
+  padding: 2px ;
+  font-size: .7rem;
+  font-family: b titr, sans-serif;
+  text-align: center;
+  position: absolute;
+  pointer-events: none; /* این خط مهم است */
+  display: none; /* این خط نیز مهم است */
+}
+.filter1{
+  width: 3.2rem;
+  font-size: .7rem;
+  font-family: b titr, sans-serif;
+  opacity: .7;
+}
+.filter{
+  font-family: b titr, sans-serif;
+  font-size: .7rem;
+  color: aliceblue;
+  opacity: .7;
+}
+.filter-dropdown{
+  font-size: .7rem;
+  opacity: .7;
+}
+#dateForm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  text-align: center;
+  width: 79px;
+  white-space: nowrap;
+  opacity: .7;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #f0f0f0;
+  margin: 0; 
+  padding: 0;
+}
+
+.loading-container {
+  display: none;
+  align-items: center;
+  color: wheat;
+}
+
+.loading-spinner {
+  border: 9px solid rgba(0, 0, 0, 0.1);
+  border-top: 9px solid #000;
+  border-radius: 50%;
+  width: 90px;
+  height: 90px;
+  animation: spin .5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+    .marker {
+        position: absolute;
+        border-radius: 50%;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    .marker-label {
+        pointer-events: none; /* جلوگیری از تأثیرپذیری برچسب از رویدادهای موس */
+    }
+
+
+        .marker-origin {
+            background-color: red;
+            width:19px; /* افزایش اندازه برای نمایش بهتر شماره */
+            height: 19px;
+            font-size: 22px; /* تنظیم اندازه فونت */
+
+        }
+
+        .marker-destination {
+            background-color: blue;
+            width: 30px; /* افزایش اندازه برای نمایش بهتر شماره */
+            height: 30px;
+            font-size: 32px; /* تنظیم اندازه فونت */
+
+        }
+
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <form id="dateForm">
+        <label class="filter" for="min_mony">  حداقـل  کرایه  مطلوب</label>
+        <input class="filter1" type="text" id="min_mony" name="min_mony" value="40000"><br>
+        <label class="filter" for="max_distance_org">حداکثر فاصله از مبداء</label>
+        <input class="filter1" type="text" id="max_distance_org" name="max_distance_org" value="1000"><br>
+        <label class="filter" for="max_distance_des">حداکثر فاصله از مقصد</label>
+        <input class="filter1" type="text" id="max_distance_des" name="max_distance_des" value="27000"><br>
+        <input class="filter1" type="submit" value="اعمال" style="width: 150px;">
+     </form>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoibWJlaWdpIiwiYSI6ImNsajFnN3Z3OTAxY3EzY28wYXloM2Fsd3MifQ.QVjbRTixAaL3PQwdMN56Ew';
+        const map = new mapboxgl.Map({
+          container: 'map',
+          style: 'mapbox://styles/mapbox/dark-v11' , //satellite-streets-v12 dark-v11'
+          center: [51.430081, 35.734749],
+          zoom: 10
+        });
+        function addMarker(coordinates, type, index, info) {
+            const el = document.createElement('div');
+            el.className = `marker marker-${type}`;
+
+            const label = document.createElement('span');
+            label.className = 'marker-label';
+            label.textContent = index;
+            el.appendChild(label);
+
+            const marker = new mapboxgl.Marker(el)
+                .setLngLat(coordinates)
+                .addTo(map);
+
+            // اضافه کردن پاپ‌آپ
+            const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+                `<h3>اطلاعات سفارش ${type === 'origin' ? 'مبدأ' : 'مقصد'}</h3>` +
+                `<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">` +
+                `<p style="margin: 0;">هزینه نهایی: ${info.final_cost} ریال</p>` +
+                `<button style="margin-left: 10px;" onclick="accept(${info.id})">قبول</button>` +
+                `</div>` +
+                `<div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">` +
+                `<input type="number" id="customAmount${info.id}" placeholder=" پیشنهاد مبلغ به تومان" style="width: 65%; margin-right: 10px;" />` +
+                `<button onclick="requestPayment(${info.id})">پیشنهاد</button>` +
+                `</div>`
+            );
+
+
+            marker.setPopup(popup);
+        }
+
+        function requestPayment(orderId) {
+            const customAmount = document.getElementById(`customAmount${orderId}`).value;
+            if (customAmount && customAmount > 0) {
+                alert(`درخواست ثبت پیشنهاد ${customAmount} ریال برای سفارش ${orderId}`);
+                // اینجا می‌توانید یک فرم پرداخت واقعی یا یک پروسه پرداخت اینتگریت شده اضافه کنید
+            } else {
+                alert("لطفا یک مبلغ معتبر وارد کنید");
+            }
+        }
+        function accept(orderId) {
+            alert(`شروع درخواست `)
+            var url = 'acpt/accept/' + orderId
+            const windowFeatures = "width=100,height=80,left=300,top=300";
+
+// باز کردن URL در یک پنجره جدید با ابعاد و موقعیت مشخص
+            window.open(url, '_blank', windowFeatures);
+        }
+
+
+
+        // function addMarker(coordinates, type, id = '', cost = '') {
+        //     const el = document.createElement('div');
+        //     el.className = `marker marker-${type}`;
+            
+        //     // افزودن تول‌تیپ به مارکر
+        //     if (id || cost) {
+        //         const tooltip = document.createElement('div');
+        //         tooltip.className = 'marker-tooltip';
+        //         tooltip.textContent = `${id}`;
+        //         // tooltip.textContent = `ID:${id}, Cost: ${cost}`;
+        //         el.appendChild(tooltip);
+        //     }
+            
+        //     const marker = new mapboxgl.Marker(el)
+        //         .setLngLat(coordinates)
+        //         .addTo(map);
+
+        //     return marker; // برگرداندن شیء مارکر برای استفاده‌های بعدی احتمالی
+        // }
+
+        function fetchPoints(max_distance_des, max_distance_org, min_mony) {
+}
+
+        // Function to fetch data and add markers
+        function fetchPoints(max_distance_des, max_distance_org, min_mony) {
+            fetch(`acpt_req/?max_distance_des=${max_distance_des}&max_distance_org=${max_distance_org}&min_mony=${min_mony}`)
+                .then(response => response.json())
+                .then(data => {
+                    const data_point = data.starts;
+                                    // در جایی که داده‌ها را دریافت می‌کنید و مارکرها را اضافه می‌کنید
+                // for (let i = 0; i < data_point.length; i++) {
+                //     addMarker([data_point[i].origin_location_lon, data_point[i].origin_location_lat], 'origin', i+1,data_point[i].final_cost);
+                //     addMarker([data_point[i].destination_location_lon, data_point[i].destination_location_lat], 'destination', i+1,data_point[i].final_cost);
+                // }
+                // در جایی که داده‌ها را دریافت می‌کنید و مارکرها را اضافه می‌کنید
+                for (let i = 0; i < data_point.length; i++) {
+                    const originInfo = {
+                        id: data_point[i].id,
+                        final_cost: data_point[i].final_cost
+                    };
+                    addMarker([data_point[i].origin_location_lon, data_point[i].origin_location_lat], 'origin', i+1, originInfo);
+
+                    const destinationInfo = {
+                        id: data_point[i].id,
+                        final_cost: data_point[i].final_cost
+                    };
+                    addMarker([data_point[i].destination_location_lon, data_point[i].destination_location_lat], 'destination', i+1, destinationInfo);
+                }
+
+
+                    // for (let i = 0; i < data_point.length; i++) {
+                    //     let final_cost = data_point[i]['final_cost'];
+                    //     let id = data_point[i]['id'];
+                    //     o_lng = data_point[i]['origin_location_lon']
+                    //     o_lat = data_point[i]['origin_location_lat']
+                    //     d_lon = data_point[i]['destination_location_lon']
+                    //     d_lat = data_point[i]['destination_location_lat']
+                    //     addMarker([o_lng,o_lat], 'origin',id,final_cost);
+                    //     addMarker([d_lon , d_lat], 'destination',id,final_cost);
+
+                    // }
+                });
+        }
+
+        // Event listener for form submission
+        document.getElementById('dateForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const max_distance_des = document.getElementById('max_distance_des').value;
+            const max_distance_org = document.getElementById('max_distance_org').value;
+            const min_mony = document.getElementById('min_mony').value;            
+            fetchPoints(max_distance_des, max_distance_org, min_mony);
+        });
+    </script>
+</body>
+</html>
